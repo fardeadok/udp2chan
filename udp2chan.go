@@ -1,4 +1,4 @@
-package udpserv
+package udp2chan
 
 import (
 	"fmt"

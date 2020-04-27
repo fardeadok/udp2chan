@@ -5,7 +5,7 @@ import "fmt"
 
 func main(){
 
- v001 := udpserv.UDP2chan{}
+ v001 := udp2chan.UDP2chan{}
  
  fmt.Println(v001);
 

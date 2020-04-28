@@ -1,13 +1,19 @@
 package main
 
-import "github.com/fardeadok/udp2chan"
-import "fmt"
+import (
+	"fmt"
 
-func main(){
+	"github.com/fardeadok/udp2chan"
+)
 
- v001 := udp2chan.UDP2chan{}
- 
- fmt.Println(v001);
+func main() {
+	// v001 := udp2chan.Udpserver{}
+	// "udp4"
+	v002, err := udp2chan.New("serv001", "9000")
+	if err != nil {
+	}
 
-return
+	fmt.Println(v002)
+
+	return
 }

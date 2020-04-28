@@ -1,59 +1,69 @@
 package udp2chan
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"net"
 )
 
-var (
-//TestVar001 int = 100
-)
-
-//
-//
-//UDP2chan is struct for  udp -> chan
-type UDP2chan struct {
-	name    string
-	port    string
-	network string
-	udpaddr *net.UDPAddr
-	conn    *net.UDPConn
-	ch      chan int
+func err(err error) string {
+	if err != nil {
+		log.Fatal()
+		return err.Error()
+	}
 }
 
-//
-//
-//
-func (v UDP2chan) String() string {
-	return v.name
+//Udpserver is struct for  udp -> chan
+type Udpserver struct {
+	name       string
+	addr, port string
+	network    string
+	udpaddr    *net.UDPAddr
+	conn       *net.UDPConn
+	ch         chan int
 }
 
-//
-//
-//
-func (v UDP2chan) GetName() string {
-	return v.name
+//Start - start listening and transmit to chan
+func (v Udpserver) Start() {
+	defer v.conn.Close()
+	for {
+		buffer := make([]byte, 1024)
+		n, addr, err := v.conn.ReadFromUDP(buffer)
+		if err != nil {
+		}
+		fmt.Println("udp client:", addr)
+		fmt.Print("received:", string(buffer[:n]))
+	}
 }
 
-//
-//
-//NewUDP2chan -  name  port
-func NewUDP2chan(name, port string) (*UDP2chan, error) {
-	tmp := &UDP2chan{
-		name: name,
-		port: port,
-		ch:   make(chan int, 1000),
+//New -  (network name,  port)
+func New(name, addr, port string) (*Udpserver, error) {
+
+	if addr == "" || port == "" {
+		return nil, errors.New("wrong addr:port")
 	}
 
-	tmpU, err := net.ResolveUDPAddr("udp4", port)
+	tmpAddr, err := net.ResolveUDPAddr("udp4", addr+":"+port)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
-	tmp.udpaddr = tmpU
 
-	tmpConn, err := net.ListenUDP("udp4", tmpU)
-	tmp.conn = tmpConn
+	tmpConn, err := net.ListenUDP("udp4", tmpAddr)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
 
-	return tmp, nil
+	tmpServ := &Udpserver{
+		name:    name,
+		port:    port,
+		ch:      make(chan int, 1000),
+		udpaddr: tmpAddr,
+		network: "udp4",
+		conn:    tmpConn,
+	}
+
+	return tmpServ, nil
 }

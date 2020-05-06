@@ -1,0 +1,1 @@
+conf for Travis, circle, drone, etc or for google cloud, aws, etc 

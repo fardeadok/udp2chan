@@ -3,30 +3,47 @@ package udp2chan
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net"
+	"sync"
 )
 
-func err(err error) string {
-	if err != nil {
-		log.Fatal()
-		return err.Error()
-	}
+var (
+	globalE = 100
+)
+
+//init - is auto start
+func init() {
+	globalE = 0
 }
 
-//Udpserver is struct for  udp -> chan
-type Udpserver struct {
+func check(err error) {
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return
+}
+
+//UDPServer is struct for  udp -> chan
+type UDPServer struct {
 	name       string
 	addr, port string
 	network    string
 	udpaddr    *net.UDPAddr
 	conn       *net.UDPConn
-	ch         chan int
+	ch         chan string
+	sync.RWMutex
 }
 
-//Start - start listening and transmit to chan
-func (v Udpserver) Start() {
+//UDPServers  - []* UdpServer
+type UDPServers struct {
+	Map map[string]*UDPServer // string is  name
+}
+
+//Start - start goroutine listening and transmit to chan
+func (v UDPServer) Start() {
+	v.Lock()
 	defer v.conn.Close()
+	defer v.Unlock()
 	for {
 		buffer := make([]byte, 1024)
 		n, addr, err := v.conn.ReadFromUDP(buffer)
@@ -35,10 +52,11 @@ func (v Udpserver) Start() {
 		fmt.Println("udp client:", addr)
 		fmt.Print("received:", string(buffer[:n]))
 	}
+
 }
 
 //New -  (network name,  port)
-func New(name, addr, port string) (*Udpserver, error) {
+func New(name, addr, port string) (*UDPServer, error) {
 
 	if addr == "" || port == "" {
 		return nil, errors.New("wrong addr:port")
@@ -56,10 +74,10 @@ func New(name, addr, port string) (*Udpserver, error) {
 		return nil, err
 	}
 
-	tmpServ := &Udpserver{
+	tmpServ := &UDPServer{
 		name:    name,
 		port:    port,
-		ch:      make(chan int, 1000),
+		ch:      make(chan string, 1000),
 		udpaddr: tmpAddr,
 		network: "udp4",
 		conn:    tmpConn,

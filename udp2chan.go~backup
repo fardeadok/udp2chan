@@ -1,6 +1,5 @@
 package udp2chan
 
-
 import (
 	"errors"
 	"fmt"
